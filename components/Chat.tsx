@@ -4,7 +4,13 @@ import { VoiceProvider } from "@humeai/voice-react";
 import Messages from "./Messages";
 import Controls from "./Controls";
 import StartCall from "./StartCall";
-import { ComponentRef, useRef } from "react";
+import { ComponentRef, useRef, useCallback, useState } from "react";
+import { getChatHistory } from "@/utils/getChatHistory";
+import { extractMemories } from "@/utils/memoryExtractor";
+import { createMemoryStore } from "@/utils/memoryStore";
+
+// Create a singleton memory store instance
+const memoryStore = createMemoryStore();
 
 export default function ClientComponent({
   accessToken,
@@ -14,9 +20,24 @@ export default function ClientComponent({
   const timeout = useRef<number | null>(null);
   const ref = useRef<ComponentRef<typeof Messages> | null>(null);
   const websocket = useRef<WebSocket | null>(null);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
 
-  // optional: use configId from environment variable
   const configId = process.env["NEXT_PUBLIC_HUME_CONFIG_ID"];
+
+  const handleChatClose = useCallback(async (chatId: string) => {
+    try {
+      // Get chat history
+      const transcript = await getChatHistory(chatId);
+
+      // Extract and save memories
+      const memories = await extractMemories(transcript);
+
+      // Log the extracted memories
+      console.log("Extracted memories:", memories);
+    } catch (error) {
+      console.error("Error processing chat memories:", error);
+    }
+  }, []);
 
   const handleToolResponse = (message: Record<string, any>) => {
     if (message.type === "tool_response") {
@@ -26,12 +47,10 @@ export default function ClientComponent({
         // Send pause message to WebSocket
         const pauseMessage = {
           type: "pause_assistant",
-          duration: toolResponse.duration * 1000, // Convert to milliseconds
+          duration: toolResponse.duration * 1000,
         };
-        // Your WebSocket send method here
         websocket.current?.send(JSON.stringify(pauseMessage));
 
-        // Set timeout to automatically resume after duration
         setTimeout(() => {
           const resumeMessage = {
             type: "resume_assistant",
@@ -50,6 +69,11 @@ export default function ClientComponent({
         onMessage={(message) => {
           handleToolResponse(message);
 
+          // Store chatId when we receive the metadata
+          if (message.type === "chat_metadata") {
+            setCurrentChatId(message.chatId);
+          }
+
           if (timeout.current) {
             window.clearTimeout(timeout.current);
           }
@@ -63,6 +87,12 @@ export default function ClientComponent({
               });
             }
           }, 200);
+        }}
+        onClose={() => {
+          // Use the stored chatId when the connection closes
+          if (currentChatId) {
+            handleChatClose(currentChatId);
+          }
         }}
       >
         <Messages ref={ref} />

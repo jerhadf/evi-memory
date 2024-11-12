@@ -4,6 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { cn } from "@/utils";
+import MemoryPanel from "@/components/MemoryPanel";
 
 export const metadata: Metadata = {
   title: "Hume AI - EVI - Example",
@@ -12,9 +13,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
@@ -25,7 +26,10 @@ export default function RootLayout({
         )}
       >
         <Nav />
-        {children}
+        <div className="relative flex grow">
+          {children}
+          <MemoryPanel />
+        </div>
       </body>
     </html>
   );
