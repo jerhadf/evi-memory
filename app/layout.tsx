@@ -7,7 +7,7 @@ import { cn } from "@/utils";
 import MemoryPanel from "@/components/MemoryPanel";
 
 export const metadata: Metadata = {
-  title: "Hume AI - EVI - Example",
+  title: "EVI Memory PoC",
   description: "An example using Hume AI's Empathic Voice Interface",
 };
 

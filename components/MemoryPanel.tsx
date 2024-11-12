@@ -12,6 +12,7 @@ export default function MemoryPanel() {
   const [memories, setMemories] = useState(memoryStore.getMemories());
 
   useEffect(() => {
+    // Update more frequently during active chat
     const interval = setInterval(() => {
       setMemories(memoryStore.getMemories());
     }, 5000);
