@@ -3,17 +3,9 @@
   <h1>EVI Memory PoC</h1>
 </div>
 
-![preview.png](preview.png)
-
 ## Overview
 
 Proof of concept of memory for the consumer app, using an interactive approach (approach #4 below, option #1 for the proof of concept). Uses the Vercel EVI example as a starting point.
-
-<aside>
-<img src="/icons/push-pin_blue.svg" alt="/icons/push-pin_blue.svg" width="40px" />
-🔗 **Related: [PDD | Memory for EVI](https://www.notion.so/PDD-Memory-for-EVI-465888451e5546d8ad706a72a784faed?pvs=21)**
-
-</aside>
 
 ## Problem
 
