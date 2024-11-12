@@ -1,9 +1,11 @@
 import { getHumeAccessToken } from "@/utils/getHumeAccessToken";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 
-const Chat = dynamic(() => import("@/components/Chat"), {
+const Chat = dynamicImport(() => import("@/components/Chat"), {
   ssr: false,
 });
+
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   const accessToken = await getHumeAccessToken();
