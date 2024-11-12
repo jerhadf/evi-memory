@@ -36,7 +36,7 @@ If there are no major memories from the chat, just return the string "None."
 - User grew up in a military family, moving between bases every few years which shaped their adaptable personality and love of travel.
 </examples>
 
-<chat_history>{transcript}</chat_history>`;
+Remember, always extract all memories that are available.`;
 
 export async function POST(request: Request) {
   try {
@@ -45,10 +45,11 @@ export async function POST(request: Request) {
     const response = await anthropic.messages.create({
       model: 'claude-3-sonnet-20240229',
       max_tokens: 1000,
-      temperature: 0.2,
+      temperature: 1,
+      system: MEMORY_EXTRACTION_PROMPT,
       messages: [{
         role: 'user',
-        content: MEMORY_EXTRACTION_PROMPT.replace('{transcript}', chatHistory)
+        content: `Output the extracted memories as a markdown list for the chat history below.\n <chat_history>${chatHistory}</chat_history>`
       }]
     });
 

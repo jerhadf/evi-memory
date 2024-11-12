@@ -1,30 +1,25 @@
-import { HumeClient } from 'hume';
-
 export const getChatHistory = async (chatId: string): Promise<string> => {
   try {
-    const client = new HumeClient({
-      apiKey: process.env.HUME_API_KEY || ''
-    });
+    console.log('Attempting to get chat history for chatId:', chatId);
 
-    const events = await client.empathicVoice.chats.listChatEvents(chatId);
+    const response = await fetch(`/api/chat-history?chatId=${encodeURIComponent(chatId)}`);
 
-    const transcript = events.data
-      .filter((event) =>
-        event.type === 'USER_MESSAGE' ||
-        event.type === 'AGENT_MESSAGE'
-      )
-      .map((event) => {
-        const role = event.type === 'USER_MESSAGE' ? 'user' : 'assistant';
-        return `${role}: ${event.messageText || ''}`;
-      })
-      .join('\n');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-    console.log('retrieved chat history:', transcript.slice(0, 100) + '...');
+    const data = await response.json();
+    return data.transcript || '';
 
-    return transcript;
-
-  } catch (error) {
-    console.error('Error getting chat history:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error getting chat history:', {
+        message: error.message,
+        stack: error.stack
+      });
+    } else {
+      console.error('Error getting chat history:', error);
+    }
     return '';
   }
 };
