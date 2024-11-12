@@ -5,18 +5,21 @@ import { createMemoryStore } from "@/utils/memoryStore";
 import { Brain } from "lucide-react";
 import { useEffect, useState } from "react";
 
-// Use the same singleton instance
 const memoryStore = createMemoryStore();
 
 export default function MemoryPanel() {
   const [memories, setMemories] = useState(memoryStore.getMemories());
 
+  // Update memories when the store changes
   useEffect(() => {
-    // Update more frequently during active chat
-    const interval = setInterval(() => {
-      setMemories(memoryStore.getMemories());
-    }, 5000);
-    return () => clearInterval(interval);
+    const updateMemories = () => setMemories(memoryStore.getMemories());
+
+    // Listen for custom event when memories are updated
+    window.addEventListener("memoriesUpdated", updateMemories);
+
+    return () => {
+      window.removeEventListener("memoriesUpdated", updateMemories);
+    };
   }, []);
 
   return (

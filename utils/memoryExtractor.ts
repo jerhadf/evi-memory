@@ -1,4 +1,4 @@
-import type { Memory } from './memoryStore';
+import type { Memory, MemoryResponse } from './memoryStore';
 import { createMemoryStore } from './memoryStore';
 
 export const extractMemories = async (chat_history: string) => {
@@ -11,18 +11,18 @@ export const extractMemories = async (chat_history: string) => {
       body: JSON.stringify({ chatHistory: chat_history }),
     });
 
-    const { memories } = await response.json();
+    const memoryResponse = await response.json() as MemoryResponse;
 
-    // Save to memory store
-    const memoryStore = createMemoryStore();
-    memories.forEach((memory: Memory) => {
-      memoryStore.addMemory(memory.content);
-    });
+    // Only add memories if they exist
+    if (memoryResponse.memories) {
+      const memoryStore = createMemoryStore();
+      memoryStore.addMemories(memoryResponse.memories);
+    }
 
-    return memories;
+    return memoryResponse;
   } catch (error) {
     console.error('Error extracting memories:', error);
-    return [];
+    return { reasoning: '', memories: null };
   }
 };
 

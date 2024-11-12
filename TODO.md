@@ -28,4 +28,4 @@
 - [ ] Add memory appending mechanism (currently overwrites instead of appends)
 - [ ] Modify the prompt to add proactive memory gathering, get-to-know-you questions
 - [ ] Make sure the memory panel only displays real memories, not None or other
-- [ ] Improve the memory prompt to extract more legit accurate memories
+- [ ] Improve the memory prompt to extract more legit accurate memories - have the model output JSON memories, which have a `chain_of_thought`, a `memory_type`, and a `content`

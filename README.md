@@ -128,3 +128,11 @@ Pros and cons:
 - 🔻 May not capture real user behavior
 - 🔻 Limited to synthetic scenarios
 - 🔻 Requires careful prompt engineering for synthetic data
+
+# Friction log
+
+- surprisingly hard to get the full chat transcript after a call - would be nice to have built in utility functions for this or an API field that has the full transcript as text, with a single line
+- kinda hard to access/understand how to use the types in the TypeScript SDK
+  - seems like the SDK lacks accessible TypeScript definitions for the chat event objects, forcing users to rely on type assertions or `any`
+- example in API reference shows response fields like `events_page`, `total_pages`, and `page_number`, but the actual API returns events directly in `response.data` as an array
+- the pagination example shows `pageSize` and `pageNumber` parameters but doesn't clearly document how to determine if there are more pages

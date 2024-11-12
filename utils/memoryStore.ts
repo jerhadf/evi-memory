@@ -3,9 +3,14 @@ export interface Memory {
   content: string;
 }
 
+export interface MemoryResponse {
+  reasoning: string;
+  memories: string[] | null;
+}
+
 interface MemoryStore {
   memories: Memory[];
-  addMemory: (content: string) => void;
+  addMemories: (newMemories: string[]) => void;
   getMemories: () => Memory[];
   getAllMemoriesText: () => string;
 }
@@ -21,8 +26,16 @@ export const createMemoryStore = (): MemoryStore => {
 
   instance = {
     memories,
-    addMemory: (content) => {
-      memories.push({ content });
+    addMemories: (newMemories) => {
+      // Filter out any null/undefined/empty strings
+      const validMemories = newMemories.filter(content =>
+        content && content.trim().length > 0 && content !== 'None'
+      );
+
+      // Add each memory as a new Memory object
+      validMemories.forEach(content => {
+        memories.push({ content });
+      });
     },
     getMemories: () => memories,
     getAllMemoriesText: () => memories.map(m => m.content).join('\n')

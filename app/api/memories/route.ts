@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import type { Memory } from '@/utils/memoryStore';
+import type { Memory, MemoryResponse } from '@/utils/memoryStore';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || ''
@@ -8,8 +8,11 @@ const anthropic = new Anthropic({
 
 const MEMORY_EXTRACTION_PROMPT = `<role>Assistant is a memory extraction system that identifies and extracts key semantic memories from human-AI voice conversations. Focus on extracting memories that would be valuable for future personalization, context, and building long-term engagement.</role>
 
-<task>
-Extract key memories from the provided conversation transcript. Focus on extracting memories, including but not limited to these types:
+<task>Extract key memories from the provided conversation transcript. Output your analysis in valid JSON format with two fields:
+1. "reasoning": Your chain of thought explaining what memories you identified in the conversation and why they are relevant, about a paragraph
+2. "memories": An array of clear, concise memory strings (up to a few sentences each). If the conversation doesn't contain relevant memories, use null for this field.
+
+Focus on extracting memories about, but not limited to, these themes:
 - Personal details: name, age, gender, location, background, occupation, family, living situation
 - Interests and preferences: hobbies, likes/dislikes, entertainment choices
 - Conversational preferences: favorite topics, preferred tone, style, and format for the AI to respond in, ways the user likes interacting
@@ -22,53 +25,54 @@ Extract key memories from the provided conversation transcript. Focus on extract
 - Past experiences: significant life events, formative memories, stories
 - Learning style: how they prefer to receive and process information
 
-Each individual memory should be its own line - don't combine a bunch of distinct memories into one line. Make sure the memories outputted are a mutually exclusive, collectively exhaustive, atomic set of all the relevant memories from the conversation.
+Each individual memory should be its own item - don't combine a bunch of distinct memories together. Make sure the memories outputted are a mutually exclusive, collectively exhaustive, atomic set of all the relevant memories from the conversation. Memories must be things that will be relevant in future chats.
 
-If there are no major memories from the chat, just return the string "None."
-</task>
+<output_format>
+{
+  "reasoning": "string explaining the memory extraction thought process",
+  "memories": ["memory1", "memory2"] // or null if no memories found
+}
+</output_format>
 
-<memory_format>Format each memory as 1-3 clear, concise sentences that capture the essential meaning. Each memory should be a markdown bullet point on its own line.</memory_format>
-
-<examples>
-- User is Sarah, a 34-year-old product designer living in Seattle who recently moved from New York for a role at a Amazon.
-- Sarah is struggling to build a new social circle in the city but has joined several meetup groups focused on hiking and photography. Her goal is to establish meaningful friendships by the end of the year.
-- User has been developing a mobile app for mental health tracking in their spare time for the past two years, inspired by their own challenges with anxiety management.
-- User grew up in a military family, moving between bases every few years which shaped their adaptable personality and love of travel.
-</examples>
-
-Remember, always extract all memories that are available.`;
+<example>
+{
+  "reasoning": "The conversation revealed several key personal details about the user. They shared their name and location, which are fundamental for personalization. The user's tone was casual and friendly, suggesting comfort with informal conversation.",
+  "memories": [
+    "User's name is Sarah",
+    "User lives in Seattle after recently moving from New York",
+    "User works as a product designer at Amazon"
+  ]
+}
+</example>`;
 
 export async function POST(request: Request) {
   try {
     const { chatHistory } = await request.json();
 
-    console.log('Processing chat history for memory extraction:', '\n' + chatHistory + '\n');
-
     const response = await anthropic.messages.create({
       model: 'claude-3-sonnet-20240229',
       max_tokens: 1000,
-      temperature: 1,
+      temperature: 0.8,
       system: MEMORY_EXTRACTION_PROMPT,
       messages: [{
         role: 'user',
-        content: `Output the extracted memories as a markdown list for the chat history below.\n <chat_history>${chatHistory}</chat_history>`
+        content: `Extract memories from this chat history as valid JSON, without any preamble or postamble: ${chatHistory}`
       }]
     });
 
     const extractedContent = response.content[0].type === 'text' ? response.content[0].text : '';
 
-    console.log('Extracted memories:', '\n' + extractedContent + '\n');
+    try {
+      const memoryResponse = JSON.parse(extractedContent) as MemoryResponse;
+      console.log('Extracted memories:', memoryResponse);
 
-    const memories = extractedContent
-      .split('\n')
-      .filter((line: string) => line.trim().length > 0)
-      .map((content: string) => ({
-        content
-      }));
-
-    return NextResponse.json({ memories });
+      return NextResponse.json(memoryResponse);
+    } catch (parseError) {
+      console.error('Error parsing memory response:', parseError);
+      return NextResponse.json({ reasoning: '', memories: null });
+    }
   } catch (error) {
     console.error('Error extracting memories:', error);
-    return NextResponse.json({ memories: [] }, { status: 500 });
+    return NextResponse.json({ reasoning: '', memories: null }, { status: 500 });
   }
 }
