@@ -1,3 +1,4 @@
+import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { createMemoryStore } from './memoryStore';
 import type { Memory } from './memoryStore';
@@ -53,7 +54,6 @@ export const extractMemories = async (chat_history: string) => {
     });
 
     const extractedContent = response.content[0].type === 'text' ? response.content[0].text : '';
-    console.log('raw response from claude:', extractedContent);
 
     const memories = extractedContent
       .split('\n')
@@ -61,8 +61,6 @@ export const extractMemories = async (chat_history: string) => {
       .map((content: string) => ({
         content
       }));
-
-    console.log('processed memories:', memories.length, 'items extracted');
 
     // Save to memory store
     const memoryStore = createMemoryStore();
