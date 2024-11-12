@@ -42,6 +42,8 @@ export async function POST(request: Request) {
   try {
     const { chatHistory } = await request.json();
 
+    console.log('Processing chat history for memory extraction:', '\n' + chatHistory + '\n');
+
     const response = await anthropic.messages.create({
       model: 'claude-3-sonnet-20240229',
       max_tokens: 1000,
@@ -54,6 +56,8 @@ export async function POST(request: Request) {
     });
 
     const extractedContent = response.content[0].type === 'text' ? response.content[0].text : '';
+
+    console.log('Extracted memories:', '\n' + extractedContent + '\n');
 
     const memories = extractedContent
       .split('\n')

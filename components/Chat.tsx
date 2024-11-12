@@ -29,11 +29,10 @@ export default function ClientComponent({
       // Get chat history
       const transcript = await getChatHistory(chatId);
 
-      // Extract and save memories
+      // Extract and save memories for this chat history
       const memories = await extractMemories(transcript);
 
-      // Log the extracted memories
-      console.log("Extracted memories:", memories);
+      console.log("Extracted final memories:", memories);
     } catch (error) {
       console.error("Error processing chat memories:", error);
     }
