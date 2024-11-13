@@ -24,6 +24,20 @@ export default function ClientComponent({
 
   const configId = process.env["NEXT_PUBLIC_HUME_CONFIG_ID"];
 
+  // Add new function to format memories as markdown list
+  const getFormattedMemories = () => {
+    const memoryStore = createMemoryStore();
+    const memories = memoryStore.getMemories();
+
+    // Sort memories by timestamp in descending order (newest first)
+    const sortedMemories = [...memories].sort((a, b) =>
+      b.timestamp.localeCompare(a.timestamp)
+    );
+
+    // Format as markdown list without timestamps
+    return sortedMemories.map((m) => `- ${m.content}`).join("\n");
+  };
+
   const handleChatClose = useCallback(async (chatId: string) => {
     try {
       // Get chat history
@@ -38,6 +52,7 @@ export default function ClientComponent({
     }
   }, []);
 
+  // not being used for memory PoC - this is for pausing/resuming with tool calls; keep in case used later
   const handleToolResponse = (message: Record<string, any>) => {
     if (message.type === "tool_response") {
       const toolResponse = JSON.parse(message.content);
@@ -65,6 +80,21 @@ export default function ClientComponent({
       <VoiceProvider
         auth={{ type: "accessToken", value: accessToken }}
         configId={configId}
+        onOpen={() => {
+          // Send session settings with memories when websocket opens
+          const sessionSettings = {
+            type: "session_settings" as const,
+            variables: {
+              memories: getFormattedMemories(),
+            },
+          };
+
+          if (websocket.current) {
+            const settingsToSend = JSON.stringify(sessionSettings);
+            console.log("Sending session settings:", settingsToSend);
+            websocket.current.send(settingsToSend);
+          }
+        }}
         onMessage={(message) => {
           handleToolResponse(message);
 

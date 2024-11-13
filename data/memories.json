@@ -1,13 +1,5 @@
 [
   {
-    "timestamp": "2024-03-10_12:00_01",
-    "content": "Name is Jeremy"
-  },
-  {
-    "timestamp": "2024-03-10_12:00_02",
-    "content": "Lives in New York City"
-  },
-  {
     "timestamp": "2024-11-13_22:12_01",
     "content": "Works as a technical product manager at Hume AI, mostly on the EVI product"
   },
@@ -26,5 +18,21 @@
   {
     "timestamp": "2024-11-13_17:39_03",
     "content": "Takes initiative in setting conversation parameters and style"
+  },
+  {
+    "timestamp": "2024-11-13_18:08_01",
+    "content": "Asked the AI to always speak as the character of a Scottish farmer with a strong accent"
+  },
+  {
+    "timestamp": "2024-11-13_18:29_01",
+    "content": "Currently working on music production using AI tools with a friend"
+  },
+  {
+    "timestamp": "2023-11-13_10:30_01",
+    "content": "Name is Jeremy"
+  },
+  {
+    "timestamp": "2023-11-13_10:30_02",
+    "content": "Lives in New York City"
   }
 ]

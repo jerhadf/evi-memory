@@ -33,6 +33,7 @@ Make sure to extract a mutually exclusive, collectively exhaustive set of all th
 - No preamble or postamble text - just the output JSON
 - Keep memories concise and factual, but include all relevant details
 - Do not duplicate existing memories - only return new memories. If they are related to existing memories, output them as new memories still
+- Make the memories as specific as possible and as TRUE to the conversation - don't just extract high-level, generic takeaways, but actual things the user mentioned (e.g. "Asked the AI to always speak as the character of a Scottish farmer with a strong accent and a gruff manner" rather than "Prefers roleplaying with characters")
 </output_rules>
 
 <example>

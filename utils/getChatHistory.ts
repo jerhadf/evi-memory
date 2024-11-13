@@ -36,7 +36,6 @@ export const getChatHistory = async (chatId: string): Promise<string> => {
     }
 
     const fullTranscript = allTranscripts.join('\n');
-    console.log('Complete chat transcript:', fullTranscript);
     return fullTranscript;
 
   } catch (error: unknown) {

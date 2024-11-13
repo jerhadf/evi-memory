@@ -7,7 +7,7 @@ export const extractMemories = async (chat_history: string): Promise<MemoryRespo
   }
 
   try {
-    console.log('Processing chat history for memory extraction:', chat_history);
+    console.log('Processing chat history for memory extraction:\n', chat_history);
 
     const response = await fetch('/api/memories', {
       method: 'POST',

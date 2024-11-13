@@ -7,7 +7,7 @@
 - [x] Add memory panel component to layout (basic memory panel display)
 - [x] Set up API routes structure
 - [x] Spice up the UI - add a title "EVI Memory PoC", change the colors/design a bit, etc
-- [ ] Improve the memory panel (currently just shows raw strings - make it prettier)
+- [x] Improve the memory panel (currently just shows raw strings - make it prettier)
 
 ## 2. Chat History System ✅
 
@@ -23,9 +23,9 @@
 - [x] Create memory extraction API endpoint
 - [x] Implement v1 of the Claude prompt for memory extraction
 - [x] Create basic memory store implementation (as strings)
-- [ ] Implement dynamic variables to send the memories to EVI (adding them to the prompt)
-- [ ] Fix memory persistence between page refreshes (currently resets on refresh)
-- [ ] Add memory appending mechanism (currently overwrites instead of appends)
+- [x] Implement dynamic variables to send the memories to EVI (adding them to the prompt)
+- [x] Fix memory persistence between page refreshes (currently resets on refresh)
+- [x] Add memory appending mechanism (currently overwrites instead of appends)
 - [ ] Modify the prompt to add proactive memory gathering, get-to-know-you questions
 - [ ] Make sure the memory panel only displays real memories, not None or other
-- [ ] Improve the memory prompt to extract more legit accurate memories - have the model output JSON memories, which have a `chain_of_thought`, a `memory_type`, and a `content`
+- [x] Improve the memory prompt to extract more legit accurate memories - have the model output JSON memories, which have a `chain_of_thought`, a `memory_type`, and a `content`
