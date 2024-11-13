@@ -1,8 +1,14 @@
 import type { Memory, MemoryResponse } from './memoryStore';
 import { createMemoryStore } from './memoryStore';
 
-export const extractMemories = async (chat_history: string) => {
+export const extractMemories = async (chat_history: string): Promise<MemoryResponse> => {
+  if (!chat_history?.trim()) {
+    return { reasoning: 'No chat history available', memories: null };
+  }
+
   try {
+    console.log('Processing chat history for memory extraction:', chat_history);
+
     const response = await fetch('/api/memories', {
       method: 'POST',
       headers: {
@@ -13,8 +19,8 @@ export const extractMemories = async (chat_history: string) => {
 
     const memoryResponse = await response.json() as MemoryResponse;
 
-    // Only add memories if they exist
-    if (memoryResponse.memories) {
+    // Only add memories if they exist and are valid
+    if (memoryResponse.memories?.length) {
       const memoryStore = createMemoryStore();
       memoryStore.addMemories(memoryResponse.memories);
     }
@@ -22,7 +28,7 @@ export const extractMemories = async (chat_history: string) => {
     return memoryResponse;
   } catch (error) {
     console.error('Error extracting memories:', error);
-    return { reasoning: '', memories: null };
+    return { reasoning: 'Error during memory extraction', memories: null };
   }
 };
 

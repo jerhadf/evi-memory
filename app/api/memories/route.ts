@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import type { Memory, MemoryResponse } from '@/utils/memoryStore';
+import type { MemoryResponse } from '@/utils/memoryStore';
+import { createMemoryStore } from '@/utils/memoryStore';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || ''
@@ -12,20 +13,10 @@ const MEMORY_EXTRACTION_PROMPT = `<role>Assistant is a memory extraction system 
 1. "reasoning": Your chain of thought explaining what memories you identified in the conversation and why they are relevant, about a paragraph
 2. "memories": An array of clear, concise memory strings (up to a few sentences each). If the conversation doesn't contain relevant memories, use null for this field.
 
-Focus on extracting memories about, but not limited to, these themes:
-- Personal details: name, age, gender, location, background, occupation, family, living situation
-- Interests and preferences: hobbies, likes/dislikes, entertainment choices
-- Conversational preferences: favorite topics, preferred tone, style, and format for the AI to respond in, ways the user likes interacting
-- Goals and aspirations: short and long-term objectives, dreams, plans
-- Emotional patterns: recurring feelings, expressions, patterns, triggers, or coping mechanisms
-- Social connections: relationships, friend groups, important people
-- Daily routines and habits: regular activities, schedules, rituals
-- Pain points and challenges: problems faced, areas of struggle, concerns, frustrations, worries
-- Values and beliefs: core principles, what matters most to them, key opinions and stances
-- Past experiences: significant life events, formative memories, stories
-- Learning style: how they prefer to receive and process information
+Focus on extracting memories about the user, including but not limited to their name, age, gender, location, background, occupation, living situation, interests, goals, emotional patterns (e.g. "Gets anxious when discussing work deadlines"), conversational style (e.g. "Prefers casual, friendly tone with occasional jokes"), daily routines, relationships, challenges (e.g. "Struggles with work-life balance due to long commute"), values, past experiences, and learning preferences (e.g. "Learns best through concrete examples rather than abstract concepts").
 
-Each individual memory should be its own item - don't combine a bunch of distinct memories together. Make sure the memories outputted are a mutually exclusive, collectively exhaustive, atomic set of all the relevant memories from the conversation. Memories must be things that will be relevant in future chats.
+Make sure to extract a mutually exclusive, collectively exhaustive set of all the relevant memories from the conversation. Memories must be distinct things that will be relevant in future chats. Err on the side of extracting more memories, even if they are short or not detailed, as long as they might be relevant in the future.
+</task>
 
 <output_format>
 {
@@ -34,45 +25,91 @@ Each individual memory should be its own item - don't combine a bunch of distinc
 }
 </output_format>
 
+<output_rules>
+- Output must be valid JSON only
+- Each memory must be a complete, standalone statement
+- No combining multiple, conceptually distinct memories into a single memory string
+- No markdown or other formatting - JSON output only
+- No preamble or postamble text - just the output JSON
+- Keep memories concise and factual, but include all relevant details
+- Do not duplicate existing memories - only return new memories. If they are related to existing memories, output them as new memories still
+</output_rules>
+
 <example>
 {
-  "reasoning": "The conversation revealed several key personal details about the user. They shared their name and location, which are fundamental for personalization. The user's tone was casual and friendly, suggesting comfort with informal conversation.",
+  "reasoning": "User mentioned their name, location, and job, which are key memories for personalization and are not already known.",
   "memories": [
-    "User's name is Sarah",
-    "User lives in Seattle after recently moving from New York",
-    "User works as a product designer at Amazon"
+    "Name is Sarah",
+    "Lives in Seattle after recently moving from New York, looking for new friends in the city",
+    "Works as a product designer at Amazon, and likes the role so far but is looking for a promotion"
   ]
 }
-</example>`;
+</example>
+
+<existing_memories>
+Here are the existing memories for this user.
+{{existingMemories}}
+</existing_memories>
+
+Return the extracted memories as ONLY valid JSON for the chat history provided below.`;
 
 export async function POST(request: Request) {
   try {
     const { chatHistory } = await request.json();
 
+    if (!chatHistory?.trim()) {
+      return NextResponse.json({
+        reasoning: "No chat history provided",
+        memories: null
+      });
+    }
+
+    // Get existing memories
+    const memoryStore = createMemoryStore();
+    const existingMemories = memoryStore.getAllMemoriesText();
+
+    const promptWithMemories = MEMORY_EXTRACTION_PROMPT.replace(
+      '{{existingMemories}}',
+      existingMemories || 'No existing memories.'
+    );
+
     const response = await anthropic.messages.create({
-      model: 'claude-3-sonnet-20240229',
+      model: 'claude-3-5-sonnet-latest',
       max_tokens: 1000,
       temperature: 0.8,
-      system: MEMORY_EXTRACTION_PROMPT,
+      system: promptWithMemories,
       messages: [{
         role: 'user',
-        content: `Extract memories from this chat history as valid JSON, without any preamble or postamble: ${chatHistory}`
+        content: `Extract new memories from this chat history as valid JSON, without any additional text:\n${chatHistory}`
       }]
     });
+    console.log('Raw Claude API response:\n', response);
 
     const extractedContent = response.content[0].type === 'text' ? response.content[0].text : '';
 
     try {
+      // Validate JSON structure
       const memoryResponse = JSON.parse(extractedContent) as MemoryResponse;
-      console.log('Extracted memories:', memoryResponse);
 
+      // validate response - reasoning and memory fields must be present
+      if (!memoryResponse.reasoning || !('memories' in memoryResponse)) {
+        throw new Error('Invalid memory response structure: ' + extractedContent);
+      }
+
+      console.log('Extracted memories:', memoryResponse);
       return NextResponse.json(memoryResponse);
     } catch (parseError) {
       console.error('Error parsing memory response:', parseError);
-      return NextResponse.json({ reasoning: '', memories: null });
+      return NextResponse.json({
+        reasoning: "Failed to parse memory response",
+        memories: null
+      });
     }
   } catch (error) {
     console.error('Error extracting memories:', error);
-    return NextResponse.json({ reasoning: '', memories: null }, { status: 500 });
+    return NextResponse.json({
+      reasoning: "Error during memory extraction",
+      memories: null
+    }, { status: 500 });
   }
 }
