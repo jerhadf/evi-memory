@@ -5,6 +5,7 @@ import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { cn } from "@/utils";
 import MemoryPanel from "@/components/MemoryPanel";
+import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "EVI Memory PoC",
@@ -17,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
         className={cn(
           GeistSans.variable,
@@ -25,11 +26,13 @@ export default function RootLayout({
           "flex flex-col min-h-screen"
         )}
       >
-        <Nav />
-        <div className="relative flex grow">
-          {children}
-          <MemoryPanel />
-        </div>
+        <Providers>
+          <Nav />
+          <div className="relative flex grow">
+            {children}
+            <MemoryPanel />
+          </div>
+        </Providers>
       </body>
     </html>
   );

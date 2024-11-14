@@ -1,38 +1,54 @@
 [
   {
-    "timestamp": "2024-11-13_22:12_01",
-    "content": "Works as a technical product manager at Hume AI, mostly on the EVI product"
-  },
-  {
-    "timestamp": "2024-11-13_22:12_02",
-    "content": "Hume AI makes an empathic AI voice called EVI (empathic voice interface)"
-  },
-  {
-    "timestamp": "2024-11-13_17:39_01",
-    "content": "Enjoys roleplay conversations and creative interaction styles"
-  },
-  {
-    "timestamp": "2024-11-13_17:39_02",
-    "content": "Specifically requested Scottish accent and farmer character, suggesting appreciation for playful dialogue"
-  },
-  {
-    "timestamp": "2024-11-13_17:39_03",
-    "content": "Takes initiative in setting conversation parameters and style"
-  },
-  {
-    "timestamp": "2024-11-13_18:08_01",
-    "content": "Asked the AI to always speak as the character of a Scottish farmer with a strong accent"
-  },
-  {
-    "timestamp": "2024-11-13_18:29_01",
-    "content": "Currently working on music production using AI tools with a friend"
-  },
-  {
     "timestamp": "2023-11-13_10:30_01",
+    "content": "User's name is Jeremy Hadfield"
+  },
+  {
+    "timestamp": "2024-11-14_16:32_02",
+    "content": "Works as a Technical Product Manager (TPM) at Hume AI"
+  },
+  {
+    "timestamp": "2024-11-14_16:32_03",
+    "content": "Works primarily on the empathic voice interface (EVI) product, usually on the API side"
+  },
+  {
+    "timestamp": "2024-11-14_16:32_04",
+    "content": "Also sometimes works on the EVI consumer app (iOS and web application)"
+  },
+  {
+    "timestamp": "2024-11-14_16:32_06",
+    "content": "Aiming to improve memory for the EVI consumer app, creating a proof of concept for testing memory improvements"
+  },
+  {
+    "timestamp": "2024-11-14_16:32_07",
+    "content": "Prefers AI to communicate in all lowercase letters usually, in a casual, conversational, gen Z style communication that stays intelligent and useful"
+  },
+  {
+    "timestamp": "2024-11-14_16:32_09",
+    "content": "Dislikes when AI uses the word 'vibe' or other slang too much"
+  },
+  {
+    "timestamp": "2024-11-14_16:32_10",
+    "content": "Values when AI can point out insightful, unexpected things and challenge his thinking"
+  },
+  {
+    "timestamp": "2024-11-14_16:32_11",
+    "content": "Concerned about the challenge of getting users to have sustained conversations with EVI, improving the AI's personalization"
+  },
+  {
+    "timestamp": "2024-11-14_16:39_01",
+    "content": "Lives in New York City"
+  },
+  {
+    "timestamp": "2024-11-14_16:39_02",
+    "content": "Moved to NYC in January 2024"
+  },
+  {
+    "timestamp": "2024-11-14_16:39_03",
     "content": "Name is Jeremy"
   },
   {
-    "timestamp": "2023-11-13_10:30_02",
-    "content": "Lives in New York City"
+    "timestamp": "2024-11-14_16:39_04",
+    "content": "Works as a TPM at Hume on memory systems for the EVI consumer app"
   }
 ]

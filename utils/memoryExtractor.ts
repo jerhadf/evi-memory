@@ -9,12 +9,19 @@ export const extractMemories = async (chat_history: string): Promise<MemoryRespo
   try {
     console.log('Processing chat history for memory extraction:\n', chat_history);
 
+    // Get existing memories before making the API call
+    const memoryStore = createMemoryStore();
+    const existingMemories = memoryStore.getAllMemoriesText();
+
     const response = await fetch('/api/memories', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ chatHistory: chat_history }),
+      body: JSON.stringify({
+        chatHistory: chat_history,
+        existingMemories: existingMemories // Pass existing memories to the API
+      }),
     });
 
     const memoryResponse = await response.json() as MemoryResponse;

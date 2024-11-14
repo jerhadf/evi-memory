@@ -4,10 +4,14 @@ import { VoiceProvider } from "@humeai/voice-react";
 import Messages from "./Messages";
 import Controls from "./Controls";
 import StartCall from "./StartCall";
-import { ComponentRef, useRef, useCallback, useState } from "react";
+import { ComponentRef, useRef, useCallback, useState, useEffect } from "react";
 import { getChatHistory } from "@/utils/getChatHistory";
 import { extractMemories } from "@/utils/memoryExtractor";
 import { createMemoryStore } from "@/utils/memoryStore";
+import { useMemoryEnabled } from "./MemoryPanel";
+
+// permanent chat group id for this conversation thread
+const PERMANENT_CHAT_GROUP_ID = "73e564d9-9391-425f-a1f2-faa895c45216";
 
 export default function ClientComponent({
   accessToken,
@@ -18,32 +22,43 @@ export default function ClientComponent({
   const ref = useRef<ComponentRef<typeof Messages> | null>(null);
   const websocket = useRef<WebSocket | null>(null);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [memories, setMemories] = useState<string>("");
 
   const configId = process.env["NEXT_PUBLIC_HUME_CONFIG_ID"];
 
-  // Add new function to format memories as markdown list
-  const getFormattedMemories = useCallback(() => {
+  const { isMemoryEnabled } = useMemoryEnabled();
+
+  // Initialize memories when component mounts
+  useEffect(() => {
     const memoryStore = createMemoryStore();
-    const memories = memoryStore.getMemories();
+    const currentMemories = memoryStore.getMemories();
+    const formattedMemories = currentMemories
+      .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+      .map((m) => `- ${m.content}`)
+      .join("\n");
 
-    // Sort memories by timestamp in descending order (newest first)
-    const sortedMemories = [...memories].sort((a, b) =>
-      b.timestamp.localeCompare(a.timestamp)
-    );
-
-    // Format as markdown list without timestamps
-    return sortedMemories.map((m) => `- ${m.content}`).join("\n");
+    setMemories(formattedMemories);
   }, []);
 
+  // Update memories when chat closes
   const handleChatClose = useCallback(async (chatId: string) => {
     try {
-      // Get chat history
       const transcript = await getChatHistory(chatId);
+      const memoryResponse = await extractMemories(transcript);
 
-      // Extract and save memories for this chat history
-      const memories = await extractMemories(transcript);
+      // After extracting new memories, update the state
+      if (memoryResponse.memories?.length) {
+        const memoryStore = createMemoryStore();
+        const currentMemories = memoryStore.getMemories();
+        const formattedMemories = currentMemories
+          .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+          .map((m) => `- ${m.content}`)
+          .join("\n");
 
-      console.log("Extracted final memories:", memories);
+        setMemories(formattedMemories);
+      }
+
+      console.log("Extracted final memories:", memoryResponse);
     } catch (error) {
       console.error("Error processing chat memories:", error);
     }
@@ -72,16 +87,24 @@ export default function ClientComponent({
     }
   };
 
+  const sessionSettings = {
+    type: "session_settings" as const,
+    variables: {
+      memories: isMemoryEnabled ? memories : "", // Only include memories if enabled
+    },
+  };
+
   return (
     <div className="relative grow flex flex-col mx-auto w-full overflow-hidden h-[0px]">
       <VoiceProvider
         auth={{ type: "accessToken", value: accessToken }}
         configId={configId}
-        sessionSettings={{
-          type: "session_settings",
-          variables: {
-            memories: getFormattedMemories(),
-          },
+        resumedChatGroupId={PERMANENT_CHAT_GROUP_ID}
+        sessionSettings={sessionSettings}
+        onOpen={() => {
+          console.log("Sent session settings:\n", sessionSettings);
+          console.log("Memory enabled:", isMemoryEnabled);
+          console.log("Current memories:", memories);
         }}
         onMessage={(message) => {
           handleToolResponse(message);
@@ -89,6 +112,7 @@ export default function ClientComponent({
           // Store chatId when we receive the metadata
           if (message.type === "chat_metadata") {
             setCurrentChatId(message.chatId);
+            console.log("Chat metadata:\n", message);
           }
 
           if (timeout.current) {

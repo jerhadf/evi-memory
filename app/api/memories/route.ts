@@ -18,6 +18,11 @@ Focus on extracting memories about the user, including but not limited to their 
 Make sure to extract a mutually exclusive, collectively exhaustive set of all the relevant memories from the conversation. Memories must be distinct things that will be relevant in future chats. Err on the side of extracting more memories, even if they are short or not detailed, as long as they might be relevant in the future.
 </task>
 
+<existing_memories>
+Here are is a list of the existing memories for this user. Do not duplicate these memories - if similar memories already exist, do not include them in your output.
+{{existingMemories}}
+</existing_memories>
+
 <output_format>
 {
   "reasoning": "string explaining the memory extraction thought process",
@@ -28,11 +33,12 @@ Make sure to extract a mutually exclusive, collectively exhaustive set of all th
 <output_rules>
 - Output must be valid JSON only
 - Each memory must be a complete, standalone statement
+- Memories must be from the User's statements, NOT from the Assistant's statements
 - No combining multiple, conceptually distinct memories into a single memory string
 - No markdown or other formatting - JSON output only
 - No preamble or postamble text - just the output JSON
 - Keep memories concise and factual, but include all relevant details
-- Do not duplicate existing memories - only return new memories. If they are related to existing memories, output them as new memories still
+- Never duplicate existing memories - only return new memories. If they are related to existing memories, output them as new memories still
 - Make the memories as specific as possible and as TRUE to the conversation - don't just extract high-level, generic takeaways, but actual things the user mentioned (e.g. "Asked the AI to always speak as the character of a Scottish farmer with a strong accent and a gruff manner" rather than "Prefers roleplaying with characters")
 </output_rules>
 
@@ -47,16 +53,11 @@ Make sure to extract a mutually exclusive, collectively exhaustive set of all th
 }
 </example>
 
-<existing_memories>
-Here are the existing memories for this user.
-{{existingMemories}}
-</existing_memories>
-
-Return the extracted memories as ONLY valid JSON for the chat history provided below.`;
+Return the new extracted memories as ONLY valid JSON for the chat history provided below.`;
 
 export async function POST(request: Request) {
   try {
-    const { chatHistory } = await request.json();
+    const { chatHistory, existingMemories } = await request.json();
 
     if (!chatHistory?.trim()) {
       return NextResponse.json({
@@ -65,14 +66,12 @@ export async function POST(request: Request) {
       });
     }
 
-    // Get existing memories
-    const memoryStore = createMemoryStore();
-    const existingMemories = memoryStore.getAllMemoriesText();
-
     const promptWithMemories = MEMORY_EXTRACTION_PROMPT.replace(
       '{{existingMemories}}',
       existingMemories || 'No existing memories.'
     );
+
+    console.log('Memory extraction prompt with existing memories:\n', promptWithMemories);
 
     const response = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-latest',

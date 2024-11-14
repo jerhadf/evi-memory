@@ -3,9 +3,10 @@
 import { motion } from "framer-motion";
 import { createMemoryStore } from "@/utils/memoryStore";
 import { Brain, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, createContext, useContext } from "react";
 import { Button } from "./ui/button";
 import type { Memory } from "@/utils/memoryStore";
+import { MemoryContext } from "./Providers";
 
 const memoryStore = createMemoryStore();
 
@@ -58,7 +59,7 @@ export default function MemoryPanel() {
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Brain className="h-5 w-5" />
           <h3 className="font-medium">Memories</h3>
@@ -74,6 +75,7 @@ export default function MemoryPanel() {
           </Button>
         )}
       </div>
+
       <div className="space-y-2">
         {memories
           .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
@@ -99,3 +101,5 @@ export default function MemoryPanel() {
     </motion.div>
   );
 }
+
+export const useMemoryEnabled = () => useContext(MemoryContext);
