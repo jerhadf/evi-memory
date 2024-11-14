@@ -9,9 +9,6 @@ import { getChatHistory } from "@/utils/getChatHistory";
 import { extractMemories } from "@/utils/memoryExtractor";
 import { createMemoryStore } from "@/utils/memoryStore";
 
-// Create a singleton memory store instance
-const memoryStore = createMemoryStore();
-
 export default function ClientComponent({
   accessToken,
 }: {
@@ -25,7 +22,7 @@ export default function ClientComponent({
   const configId = process.env["NEXT_PUBLIC_HUME_CONFIG_ID"];
 
   // Add new function to format memories as markdown list
-  const getFormattedMemories = () => {
+  const getFormattedMemories = useCallback(() => {
     const memoryStore = createMemoryStore();
     const memories = memoryStore.getMemories();
 
@@ -36,7 +33,7 @@ export default function ClientComponent({
 
     // Format as markdown list without timestamps
     return sortedMemories.map((m) => `- ${m.content}`).join("\n");
-  };
+  }, []);
 
   const handleChatClose = useCallback(async (chatId: string) => {
     try {
@@ -80,20 +77,11 @@ export default function ClientComponent({
       <VoiceProvider
         auth={{ type: "accessToken", value: accessToken }}
         configId={configId}
-        onOpen={() => {
-          // Send session settings with memories when websocket opens
-          const sessionSettings = {
-            type: "session_settings" as const,
-            variables: {
-              memories: getFormattedMemories(),
-            },
-          };
-
-          if (websocket.current) {
-            const settingsToSend = JSON.stringify(sessionSettings);
-            console.log("Sending session settings:", settingsToSend);
-            websocket.current.send(settingsToSend);
-          }
+        sessionSettings={{
+          type: "session_settings",
+          variables: {
+            memories: getFormattedMemories(),
+          },
         }}
         onMessage={(message) => {
           handleToolResponse(message);
