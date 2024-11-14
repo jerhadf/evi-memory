@@ -32,7 +32,7 @@ Here are is a list of the existing memories for this user. Do not duplicate thes
 
 <output_rules>
 - Output must be valid JSON only
-- Each memory must be a complete, standalone statement
+- Each memory must be a complete, standalone statement, 1-3 sentences long (if needed, can be longer to include the relevant details)
 - Memories must be from the User's statements, NOT from the Assistant's statements
 - No combining multiple, conceptually distinct memories into a single memory string
 - No markdown or other formatting - JSON output only
@@ -78,10 +78,12 @@ export async function POST(request: Request) {
       max_tokens: 1000,
       temperature: 0.8,
       system: promptWithMemories,
-      messages: [{
-        role: 'user',
-        content: `Extract new memories from this chat history as valid JSON, without any additional text:\n${chatHistory}`
-      }]
+      messages: [
+        {
+          role: 'user',
+          content: `Extract new memories from this chat history as valid JSON with no other text, ONLY JSON:\n${chatHistory}`
+        }
+      ]
     });
     console.log('Raw Claude API response:\n', response);
 

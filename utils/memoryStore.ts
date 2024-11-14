@@ -25,24 +25,46 @@ export const createMemoryStore = () => {
     instance = {
       memories: initialMemories,
       addMemories: (newMemories: string[]) => {
-        const timestamp = new Date().toISOString()
-          .replace(/[-:]/g, '')
-          .replace('T', '_')
-          .split('.')[0];
+        // Format: YYYY-MM-DD_HH:mm_XX
+        const now = new Date();
+        const baseTimestamp = now.toISOString()
+          .slice(0, 16) // Get YYYY-MM-DDTHH:mm
+          .replace('T', '_'); // Replace T with underscore
 
-        const newMemoryObjects = newMemories.map(content => ({
-          timestamp,
+        const newMemoryObjects = newMemories.map((content, index) => ({
+          timestamp: `${baseTimestamp}_${index.toString().padStart(2, '0')}`,
           content
         }));
 
         instance!.memories = [...instance!.memories, ...newMemoryObjects];
+
+        console.log('adding new memories to storage:\n', newMemories);
+        // Save to file via API
+        fetch('/api/memory-store', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(instance!.memories),
+        });
+
+        // Dispatch event to update UI
+        window.dispatchEvent(new Event('memoriesUpdated'));
       },
       getMemories: () => instance!.memories,
       getAllMemoriesText: () => instance!.memories
         .map(m => `- ${m.content}`)
         .join('\n'),
       clearMemories: () => {
+        console.log('clearing all memories');
         instance!.memories = [];
+        fetch('/api/memory-store', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify([]),
+        });
       }
     };
   }

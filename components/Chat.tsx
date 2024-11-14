@@ -11,7 +11,7 @@ import { createMemoryStore } from "@/utils/memoryStore";
 import { useMemoryEnabled } from "./MemoryPanel";
 
 // permanent chat group id for this conversation thread
-const PERMANENT_CHAT_GROUP_ID = "73e564d9-9391-425f-a1f2-faa895c45216";
+const PERMANENT_CHAT_GROUP_ID = "1346871b-4e2a-4dd3-827f-649f8d8e9615";
 
 export default function ClientComponent({
   accessToken,
@@ -41,28 +41,44 @@ export default function ClientComponent({
   }, []);
 
   // Update memories when chat closes
-  const handleChatClose = useCallback(async (chatId: string) => {
-    try {
-      const transcript = await getChatHistory(chatId);
-      const memoryResponse = await extractMemories(transcript);
-
-      // After extracting new memories, update the state
-      if (memoryResponse.memories?.length) {
-        const memoryStore = createMemoryStore();
-        const currentMemories = memoryStore.getMemories();
-        const formattedMemories = currentMemories
-          .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-          .map((m) => `- ${m.content}`)
-          .join("\n");
-
-        setMemories(formattedMemories);
+  const handleChatClose = useCallback(
+    async (chatId: string) => {
+      // Only process chat close if it's a legitimate end of conversation
+      if (!chatId) {
+        console.log("No chat ID provided, skipping chat close handling");
+        return;
       }
 
-      console.log("Extracted final memories:", memoryResponse);
-    } catch (error) {
-      console.error("Error processing chat memories:", error);
-    }
-  }, []);
+      try {
+        // Get chat history regardless of memory setting
+        const transcript = await getChatHistory(chatId);
+
+        // Only extract and save memories if the feature is enabled
+        if (isMemoryEnabled) {
+          console.log("Extracting memories from chat...");
+          const memoryResponse = await extractMemories(transcript);
+
+          if (memoryResponse.memories?.length) {
+            const memoryStore = createMemoryStore();
+            const currentMemories = memoryStore.getMemories();
+            const formattedMemories = currentMemories
+              .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+              .map((m) => `- ${m.content}`)
+              .join("\n");
+
+            setMemories(formattedMemories);
+          }
+
+          console.log("Extracted final memories:", memoryResponse);
+        } else {
+          console.log("Memory extraction skipped - memories disabled");
+        }
+      } catch (error) {
+        console.error("Error processing chat memories:", error);
+      }
+    },
+    [isMemoryEnabled]
+  );
 
   // not being used for memory PoC - this is for pausing/resuming with tool calls; keep in case used later
   const handleToolResponse = (message: Record<string, any>) => {
