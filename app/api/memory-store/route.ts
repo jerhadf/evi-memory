@@ -1,11 +1,14 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 import { promises as fs } from 'fs';
 import { NextResponse } from 'next/server';
 import path from 'path';
 import type { Memory } from '@/utils/memoryStore';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const MEMORY_KEY = 'evi-memories'; // consistent key for KV store
+const MEMORY_KEY = 'evi-memories';
+
+// Initialize Redis for production
+const redis = Redis.fromEnv();
 
 async function getLocalMemories() {
   const filePath = path.join(process.cwd(), 'data', 'memories.json');
@@ -23,7 +26,7 @@ export async function POST(request: Request) {
     const memories = await request.json();
 
     if (isProduction) {
-      await kv.set(MEMORY_KEY, memories);
+      await redis.set(MEMORY_KEY, JSON.stringify(memories));
     } else {
       await saveLocalMemories(memories);
     }
@@ -38,7 +41,8 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     if (isProduction) {
-      const memories = await kv.get(MEMORY_KEY) as Memory[] || [];
+      const memoriesStr = await redis.get<string>(MEMORY_KEY);
+      const memories = memoriesStr ? JSON.parse(memoriesStr) : [];
       return NextResponse.json(memories);
     } else {
       const memories = await getLocalMemories();
@@ -50,35 +54,10 @@ export async function GET() {
   }
 }
 
-// Add export endpoint to download current memories as JSON
-export async function PUT(request: Request) {
-  try {
-    const { action } = await request.json();
-
-    if (action === 'export') {
-      const memories = isProduction
-        ? await kv.get(MEMORY_KEY) as Memory[]
-        : await getLocalMemories();
-
-      return new Response(JSON.stringify(memories, null, 2), {
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Disposition': 'attachment; filename=memories.json'
-        }
-      });
-    }
-
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-  } catch (error) {
-    console.error('Error exporting memories:', error);
-    return NextResponse.json({ error: 'Failed to export memories' }, { status: 500 });
-  }
-}
-
 export async function DELETE() {
   try {
     if (isProduction) {
-      await kv.del(MEMORY_KEY);
+      await redis.del(MEMORY_KEY);
     } else {
       await saveLocalMemories([]);
     }
