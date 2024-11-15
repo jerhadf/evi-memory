@@ -9,6 +9,7 @@ import { getChatHistory } from "@/utils/getChatHistory";
 import { extractMemories } from "@/utils/memoryExtractor";
 import { createMemoryStore } from "@/utils/memoryStore";
 import { useMemoryEnabled } from "./MemoryPanel";
+import type { Memory } from "@/utils/memoryStore";
 
 // permanent chat group id for this conversation thread
 const PERMANENT_CHAT_GROUP_ID = "8e9f616d-e940-49b1-baf9-c6a1e1565824";
@@ -30,14 +31,25 @@ export default function ClientComponent({
 
   // Initialize memories when component mounts
   useEffect(() => {
-    const memoryStore = createMemoryStore();
-    const currentMemories = memoryStore.getMemories();
-    const formattedMemories = currentMemories
-      .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-      .map((m) => `- ${m.content}`)
-      .join("\n");
+    const loadMemories = async () => {
+      try {
+        const response = await fetch("/api/memory-store");
+        const currentMemories = (await response.json()) as Memory[];
 
-    setMemories(formattedMemories);
+        const formattedMemories = currentMemories
+          .sort((a: Memory, b: Memory) =>
+            b.timestamp.localeCompare(a.timestamp)
+          )
+          .map((m: Memory) => `- ${m.content}`)
+          .join("\n");
+
+        setMemories(formattedMemories);
+      } catch (error) {
+        console.error("Error loading initial memories:", error);
+      }
+    };
+
+    loadMemories();
   }, []);
 
   // Update memories when chat closes
@@ -62,8 +74,10 @@ export default function ClientComponent({
             const memoryStore = createMemoryStore();
             const currentMemories = memoryStore.getMemories();
             const formattedMemories = currentMemories
-              .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-              .map((m) => `- ${m.content}`)
+              .sort((a: Memory, b: Memory) =>
+                b.timestamp.localeCompare(a.timestamp)
+              )
+              .map((m: Memory) => `- ${m.content}`)
               .join("\n");
 
             setMemories(formattedMemories);
