@@ -24,13 +24,30 @@ async function saveLocalMemories(memories: Memory[]) {
 
 export async function POST(request: Request) {
   try {
-    const memories = await request.json();
+    const newMemories = await request.json();
 
     if (!isProduction && USE_LOCAL_JSON_IN_DEV) {
-      await saveLocalMemories(memories);
+      await saveLocalMemories(newMemories);
     } else {
-      console.log('Saving memories to Redis:', memories);
-      await redis.set(MEMORY_KEY, memories); // Don't stringify, Redis will handle it
+      // Get existing memories first
+      const existingMemories = await redis.get<Memory[]>(MEMORY_KEY) || [];
+
+      // Create a map of existing memories by content to check for duplicates
+      const existingContentMap = new Map(existingMemories.map(m => [m.content, m]));
+
+      // Merge memories, avoiding duplicates
+      const mergedMemories = [...newMemories];
+      for (const memory of existingMemories) {
+        if (!existingContentMap.has(memory.content)) {
+          mergedMemories.push(memory);
+        }
+      }
+
+      // Sort by timestamp
+      mergedMemories.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+
+      console.log('Saving merged memories to Redis:', mergedMemories);
+      await redis.set(MEMORY_KEY, mergedMemories);
     }
 
     return NextResponse.json({ success: true });

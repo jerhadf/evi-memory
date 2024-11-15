@@ -10,6 +10,9 @@ import { MemoryContext } from "./Providers";
 
 const memoryStore = createMemoryStore();
 
+// feature flag for showing delete memories button
+const SHOW_DELETE_MEMORIES_BUTTON = false;
+
 export default function MemoryPanel() {
   const [memories, setMemories] = useState<Memory[]>([]);
 
@@ -64,7 +67,7 @@ export default function MemoryPanel() {
           <Brain className="h-5 w-5" />
           <h3 className="font-medium">Memories</h3>
         </div>
-        {memories.length > 0 && (
+        {SHOW_DELETE_MEMORIES_BUTTON && memories.length > 0 && (
           <Button
             variant="ghost"
             size="icon"

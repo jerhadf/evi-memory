@@ -20,7 +20,7 @@ export const extractMemories = async (chat_history: string): Promise<MemoryRespo
       },
       body: JSON.stringify({
         chatHistory: chat_history,
-        existingMemories: existingMemories // Pass existing memories to the API
+        existingMemories: existingMemories
       }),
     });
 
@@ -29,7 +29,7 @@ export const extractMemories = async (chat_history: string): Promise<MemoryRespo
     // Only add memories if they exist and are valid
     if (memoryResponse.memories?.length) {
       const memoryStore = createMemoryStore();
-      memoryStore.addMemories(memoryResponse.memories);
+      await memoryStore.addMemories(memoryResponse.memories);
     }
 
     return memoryResponse;

@@ -24,31 +24,37 @@ export const createMemoryStore = () => {
   if (!instance) {
     instance = {
       memories: initialMemories,
-      addMemories: (newMemories: string[]) => {
-        // Format: YYYY-MM-DD_HH:mm_XX
+      addMemories: async (newMemories: string[]) => {
+        // Get latest memories from Redis first
+        const response = await fetch('/api/memory-store');
+        const currentMemories = await response.json();
+
         const now = new Date();
         const baseTimestamp = now.toISOString()
-          .slice(0, 16) // Get YYYY-MM-DDTHH:mm
-          .replace('T', '_'); // Replace T with underscore
+          .slice(0, 16)
+          .replace('T', '_');
 
         const newMemoryObjects = newMemories.map((content, index) => ({
           timestamp: `${baseTimestamp}_${index.toString().padStart(2, '0')}`,
           content
         }));
 
-        instance!.memories = [...instance!.memories, ...newMemoryObjects];
+        // Merge with latest state
+        const mergedMemories = [...currentMemories, ...newMemoryObjects];
 
-        console.log('adding new memories to storage:\n', newMemories);
-        // Save to file via API
-        fetch('/api/memory-store', {
+        // Save merged state
+        await fetch('/api/memory-store', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(instance!.memories),
+          body: JSON.stringify(mergedMemories),
         });
 
-        // Dispatch event to update UI
+        // Update local state only after successful save
+        instance!.memories = mergedMemories;
+
+        // Dispatch event after successful update
         window.dispatchEvent(new Event('memoriesUpdated'));
       },
       getMemories: () => instance!.memories,
