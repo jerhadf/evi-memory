@@ -7,7 +7,7 @@
 
 Proof of concept of a simple memory system for the consumer app - extract key memories from chats, then save them to the prompt (in a {{memories}} dynamic variable). Uses the Vercel EVI example as a starting point.
 
-## How It Works
+## How it works
 
 - Chats are processed through `utils/memoryExtractor.ts` and `api/memories/route.ts`, which uses a prompt with Claude 3.5 Sonnet to extract memories
 - Memory extraction occurs on chat close through `handleChatClose` in `Chat.tsx`
