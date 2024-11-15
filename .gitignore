@@ -37,3 +37,6 @@ package-lock.json
 .env
 .env*.local
 .vercel
+
+# Local memory files
+data/old_memories.json
