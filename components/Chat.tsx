@@ -11,7 +11,7 @@ import { createMemoryStore } from "@/utils/memoryStore";
 import { useMemoryEnabled } from "./MemoryPanel";
 
 // permanent chat group id for this conversation thread
-const PERMANENT_CHAT_GROUP_ID = "1346871b-4e2a-4dd3-827f-649f8d8e9615";
+const PERMANENT_CHAT_GROUP_ID = "8e9f616d-e940-49b1-baf9-c6a1e1565824";
 
 export default function ClientComponent({
   accessToken,
