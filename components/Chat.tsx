@@ -26,7 +26,7 @@ export default function ClientComponent({
 
   const configId = process.env["NEXT_PUBLIC_HUME_CONFIG_ID"];
 
-  const { isMemoryEnabled } = useMemoryEnabled();
+  const { isMemoryEnabled, isResumeEnabled } = useMemoryEnabled();
 
   // Initialize memories when component mounts
   useEffect(() => {
@@ -115,12 +115,19 @@ export default function ClientComponent({
       <VoiceProvider
         auth={{ type: "accessToken", value: accessToken }}
         configId={configId}
-        resumedChatGroupId={PERMANENT_CHAT_GROUP_ID}
+        resumedChatGroupId={
+          isResumeEnabled ? PERMANENT_CHAT_GROUP_ID : undefined
+        }
         sessionSettings={sessionSettings}
         onOpen={() => {
-          console.log("Sent session settings:\n", sessionSettings);
           console.log("Memory enabled:", isMemoryEnabled);
-          console.log("Current memories:", memories);
+          console.log("Resume enabled:", isResumeEnabled);
+          console.log(
+            "Resuming from chat group ID:",
+            isResumeEnabled ? PERMANENT_CHAT_GROUP_ID : "none"
+          );
+          console.log("Sent session settings:\n", sessionSettings);
+          console.log("Current memories:\n", memories);
         }}
         onMessage={(message) => {
           handleToolResponse(message);
