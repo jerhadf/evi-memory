@@ -29,8 +29,11 @@
 - [x] Modify the prompt to add proactive memory gathering, get-to-know-you questions
 - [x] Make sure the memory panel only displays real memories, not None or other
 - [x] Improve the memory prompt to extract more legit accurate memories - have the model output JSON memories, which have a `chain_of_thought`, a `memory_type`, and a `content`
-- [ ] Add a chat resumability option in the UI so that we can toggle between resuming or not (to test whether resuming from previous chats is enough or if memories make a difference)
+- [x] Add a chat resumability option in the UI so that we can toggle between resuming or not (to test whether resuming from previous chats is enough or if memories make a difference)
+- [ ] Option to turn off chat resumability seperately
+- [ ] Add vercel KV storage instead of local JSON storage of memories
 
 ## 4. Evaluation ⚖️
 
+- [] Make sure that in the deployed version memories are still saved
 - [] Build up some memories and chat history, and see what the difference is

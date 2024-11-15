@@ -36,3 +36,4 @@ package-lock.json
 # Environment files
 .env
 .env*.local
+.vercel
